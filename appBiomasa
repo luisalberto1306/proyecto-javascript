@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoilCarbon Pro - Análisis de Carbono en Suelos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2e35 0%, #1c3b3a 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 25px 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .app-title h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2e7d5e, #1a4a3a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #2e7d5e, #1a4a3a);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Grid Principal */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Tarjetas */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eef2f6;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1e3b3a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: #2e7d5e;
+            font-size: 1.2em;
+        }
+
+        /* Inputs */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #4a5c6c;
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #eef2f6;
+            border-radius: 16px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            border-color: #2e7d5e;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(46, 125, 94, 0.1);
+        }
+
+        /* Botones */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2e7d5e, #1a4a3a);
+            color: white;
+            box-shadow: 0 8px 20px rgba(46, 125, 94, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(46, 125, 94, 0.4);
+        }
+
+        .btn-secondary {
+            background: #eef2f6;
+            color: #1e3b3a;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8ec;
+        }
+
+        /* Resultados */
+        .result-card {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #1e3b3a;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        .result-unit {
+            font-size: 0.9em;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .result-diagnosis {
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        /* Gráficos */
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            height: 300px;
+            position: relative;
+        }
+
+        /* Grid de gráficas */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        /* Conclusiones */
+        .conclusion-card {
+            background: linear-gradient(135deg, #1e3b3a, #1a4a3a);
+            color: white;
+            border-radius: 30px;
+            padding: 30px;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .conclusion-card::before {
+            content: "🌱";
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 80px;
+            opacity: 0.1;
+        }
+
+        .conclusion-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .conclusion-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* Estado de salud */
+        .health-indicator {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .health-bar {
+            flex: 1;
+            height: 12px;
+            background: #eef2f6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-header {
+                padding: 20px;
+            }
+
+            .app-title h1 {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="app-title">
+                <h1>🌱 SoilCarbon Pro</h1>
+                <span class="badge">Análisis de Carbono v2.0</span>
+            </div>
+            <p style="color: #4a5c6c; margin-top: 15px; font-size: 1.1em;">
+                Sistema avanzado para análisis de carbono, biomasa y salud del suelo
+            </p>
+        </div>
+
+        <!-- Inputs Principales -->
+        <div class="dashboard-grid">
+            <!-- Tarjeta de Muestra -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🧪</span> Datos de Muestra
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">ID Muestra</label>
+                    <input type="text" id="muestraID" class="input-field" placeholder="Ej: S-001" value="S-001">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Origen/Descripción</label>
+                    <input type="text" id="origenMuestra" class="input-field" placeholder="Ej: Finca La Esperanza"
+                        value="Finca La Esperanza">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Peso Bandeja (g)</label>
+                    <input type="number" id="pesoBandeja" class="input-field" step="0.01" value="5.2">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Bandeja + Suelo Húmedo (g)</label>
+                    <input type="number" id="pesoHumedo" class="input-field" step="0.01" value="25.2">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Bandeja + Suelo Seco (g)</label>
+                    <input type="number" id="pesoSeco" class="input-field" step="0.01" value="23.2">
+                </div>
+            </div>
+
+            <!-- Tarjeta de CO2 y Respiración -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>💨</span> Evolución CO2
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">HCl Gastado - Blanco (mL)</label>
+                    <input type="number" id="hclBlanco" class="input-field" step="0.1" value="19.7">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">HCl Gastado - Muestra (mL)</label>
+                    <input type="number" id="hclMuestra" class="input-field" step="0.1" value="14.2">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Peso Suelo Húmedo (g)</label>
+                    <input type="number" id="pesoSueloHumedo" class="input-field" step="0.1" value="30">
+                </div>
+                <button onclick="calcularCO2()" class="btn btn-primary" style="margin-top: 10px;">
+                    💨 Calcular Evolución CO2
+                </button>
+                <div id="resultadoCO2" class="result-card" style="display: none;">
+                    <div style="font-size: 0.9em; color: #64748b;">CO₂ Evolucionado</div>
+                    <div class="result-value" id="valorCO2">0</div>
+                    <div class="result-unit">mg CO₂ / 100g suelo / hora</div>
+                    <div id="diagnosticoCO2" class="result-diagnosis"></div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Biomasa -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🦠</span> Biomasa Microbiana
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">mg CO₂ (Calculado)</label>
+                    <input type="number" id="mgCO2Input" class="input-field" step="0.01" placeholder="Usar cálculo CO2">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Factor Coeficiente</label>
+                    <input type="number" id="coeficienteBiomasa" class="input-field" step="0.1" value="20.6">
+                </div>
+                <button onclick="calcularBiomasa()" class="btn btn-primary">
+                    🦠 Calcular Biomasa
+                </button>
+                <div id="resultadoBiomasa" class="result-card" style="display: none;">
+                    <div style="font-size: 0.9em; color: #64748b;">Carbono en Biomasa</div>
+                    <div class="result-value" id="valorBiomasa">0</div>
+                    <div class="result-unit">mg C / kg suelo</div>
+                    <div id="diagnosticoBiomasa" class="result-diagnosis"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segunda Fila: Carbono Orgánico y MO -->
+        <div class="dashboard-grid">
+            <!-- Tarjeta Curva de Calibración -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📊</span> Curva de Calibración
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label class="input-label">Conc. (mg C)</label>
+                        <input type="number" id="conc1" class="input-field" value="1.25" step="0.01">
+                        <input type="number" id="conc2" class="input-field" value="2.5" step="0.01"
+                            style="margin-top: 8px;">
+                        <input type="number" id="conc3" class="input-field" value="5" step="0.01"
+                            style="margin-top: 8px;">
+                        <input type="number" id="conc4" class="input-field" value="10" step="0.01"
+                            style="margin-top: 8px;">
+                        <input type="number" id="conc5" class="input-field" value="12.5" step="0.01"
+                            style="margin-top: 8px;">
+                        <input type="number" id="conc6" class="input-field" value="25" step="0.01"
+                            style="margin-top: 8px;">
+                    </div>
+                    <div>
+                        <label class="input-label">Absorbancia</label>
+                        <input type="number" id="abs1" class="input-field" value="0.041" step="0.001">
+                        <input type="number" id="abs2" class="input-field" value="0.025" step="0.001"
+                            style="margin-top: 8px;">
+                        <input type="number" id="abs3" class="input-field" value="0.106" step="0.001"
+                            style="margin-top: 8px;">
+                        <input type="number" id="abs4" class="input-field" value="0.35" step="0.001"
+                            style="margin-top: 8px;">
+                        <input type="number" id="abs5" class="input-field" value="0.395" step="0.001"
+                            style="margin-top: 8px;">
+                        <input type="number" id="abs6" class="input-field" value="0.886" step="0.001"
+                            style="margin-top: 8px;">
+                    </div>
+                </div>
+                <button onclick="calcularRegresion()" class="btn btn-secondary" style="margin-top: 20px;">
+                    📈 Calcular Regresión
+                </button>
+                <div id="resultadoRegresion"
+                    style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Pendiente (m):</span>
+                        <span id="pendienteValor" style="font-weight: 600;">0.0345</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span>Intercepto (b):</span>
+                        <span id="interceptoValor" style="font-weight: 600;">-0.0267</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta Lc y %C -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>⚗️</span> Lc y % Carbono
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Absorbancia Muestra</label>
+                    <input type="number" id="absorbanciaMuestra" class="input-field" step="0.001" value="0.468">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Peso Muestra (mg)</label>
+                    <input type="number" id="pesoMuestra" class="input-field" step="0.1" value="100">
+                </div>
+                <button onclick="calcularCarbono()" class="btn btn-primary">
+                    ⚗️ Calcular % Carbono
+                </button>
+                <div id="resultadoCarbono" class="result-card" style="display: none; margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <div style="font-size: 0.9em; color: #64748b;">Lc (mg C)</div>
+                            <div class="result-value" style="font-size: 1.8em;" id="valorLc">0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9em; color: #64748b;">% Carbono</div>
+                            <div class="result-value" style="font-size: 1.8em;" id="valorPorcentajeC">0</div>
+                        </div>
+                    </div>
+                    <div id="diagnosticoCarbono" class="result-diagnosis"></div>
+                </div>
+            </div>
+
+            <!-- Tarjeta % MO -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🌿</span> Materia Orgánica
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">% Carbono</label>
+                    <input type="number" id="porcentajeCInput" class="input-field" step="0.01"
+                        placeholder="Usar cálculo anterior">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Factor Van Bemmelen</label>
+                    <input type="number" id="factorVB" class="input-field" step="0.1" value="1.724">
+                </div>
+                <button onclick="calcularMO()" class="btn btn-primary">
+                    🌿 Calcular % MO
+                </button>
+                <div id="resultadoMO" class="result-card" style="display: none;">
+                    <div style="font-size: 0.9em; color: #64748b;">Materia Orgánica</div>
+                    <div class="result-value" id="valorMO">0</div>
+                    <div class="result-unit">% MO</div>
+                    <div id="diagnosticoMO" class="result-diagnosis"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📈</span> Curva de Calibración
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="curvaCalibracion"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📊</span> Indicadores de Salud
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="indicadoresSalud"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicador de Salud y Conclusión -->
+        <div class="conclusion-card">
+            <div class="conclusion-title">
+                <span>🔬</span> Diagnóstico Integral del Suelo
+            </div>
+            <div id="conclusionTexto" class="conclusion-text">
+                Ingrese los datos y calcule los parámetros para obtener un diagnóstico completo.
+            </div>
+            <div class="health-indicator">
+                <span style="font-size: 1.5em;">🌡️</span>
+                <div class="health-bar">
+                    <div id="healthBarFill" class="health-fill"
+                        style="width: 0%; background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);"></div>
+                </div>
+                <span id="healthScore" style="font-weight: 600;">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Variables globales
+        let regresionData = {
+            pendiente: 0.0345,
+            intercepto: -0.0267
+        };
+
+        let chartCalibracion = null;
+        let chartSalud = null;
+
+        // Inicializar gráficos
+        window.onload = function () {
+            initCharts();
+        };
+
+        function initCharts() {
+            const ctxCal = document.getElementById('curvaCalibracion').getContext('2d');
+            chartCalibracion = new Chart(ctxCal, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Patrones',
+                        data: [
+                            { x: 1.25, y: 0.041 },
+                            { x: 2.5, y: 0.025 },
+                            { x: 5, y: 0.106 },
+                            { x: 10, y: 0.35 },
+                            { x: 12.5, y: 0.395 },
+                            { x: 25, y: 0.886 }
+                        ],
+                        backgroundColor: '#2e7d5e',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: 'Línea de Regresión',
+                        data: [],
+                        type: 'line',
+                        borderColor: '#ff6b6b',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `Conc: ${context.parsed.x} mg, Abs: ${context.parsed.y.toFixed(3)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Concentración (mg C)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Absorbancia'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctxSalud = document.getElementById('indicadoresSalud').getContext('2d');
+            chartSalud = new Chart(ctxSalud, {
+                type: 'radar',
+                data: {
+                    labels: ['Evolución CO2', 'Biomasa', '% Carbono', '% MO', 'Actividad'],
+                    datasets: [{
+                        label: 'Nivel Actual',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(46, 125, 94, 0.2)',
+                        borderColor: '#2e7d5e',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#2e7d5e'
+                    }, {
+                        label: 'Óptimo',
+                        data: [40, 40, 5, 8, 100],
+                        backgroundColor: 'rgba(46, 125, 94, 0.1)',
+                        borderColor: 'rgba(46, 125, 94, 0.3)',
+                        borderWidth: 1,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para calcular %PS
+        function calcularPS() {
+            const bandeja = parseFloat(document.getElementById('pesoBandeja').value) || 0;
+            const humedo = parseFloat(document.getElementById('pesoHumedo').value) || 0;
+            const seco = parseFloat(document.getElementById('pesoSeco').value) || 0;
+
+            const pesoHumedo = humedo - bandeja;
+            const pesoSeco = seco - bandeja;
+            const pps = (pesoSeco / pesoHumedo) * 100;
+
+            return {
+                pesoHumedo,
+                pesoSeco,
+                pps
+            };
+        }
+
+        // Calcular Evolución CO2
+        function calcularCO2() {
+            const hclBlanco = parseFloat(document.getElementById('hclBlanco').value) || 19.7;
+            const hclMuestra = parseFloat(document.getElementById('hclMuestra').value) || 14.2;
+            const pesoHumedoSuelo = parseFloat(document.getElementById('pesoSueloHumedo').value) || 30;
+
+            const datosPS = calcularPS();
+            const pps = datosPS.pps;
+
+            // Fórmula: ((Blanco - Muestra) * 2.2 * 100 * 100) / (168 * pesoHumedoSuelo * (%PS/100))
+            const co2 = ((hclBlanco - hclMuestra) * 2.2 * 100 * 100) / (168 * pesoHumedoSuelo * (pps / 100));
+
+            document.getElementById('resultadoCO2').style.display = 'block';
+            document.getElementById('valorCO2').innerHTML = co2.toFixed(2);
+            document.getElementById('mgCO2Input').value = co2.toFixed(2);
+
+            // Diagnóstico
+            let diagnostico = '';
+            let color = '';
+            if (co2 > 40) {
+                diagnostico = '✅ SALUDABLE: Alta actividad biológica. Suelo con excelente respiración.';
+                color = '#6bcf7f';
+            } else if (co2 >= 20) {
+                diagnostico = '🟡 MODERADO: Suelo con intervención, actividad biológica media.';
+                color = '#ffd93d';
+            } else if (co2 >= 10) {
+                diagnostico = '🟠 DEGRADADO: Baja actividad por uso de pesticidas o manejo intensivo.';
+                color = '#ff9f43';
+            } else {
+                diagnostico = '🔴 CRÍTICO: Toxicidad por hidrocarburos o inhibición microbiana.';
+                color = '#ff6b6b';
+            }
+
+            document.getElementById('diagnosticoCO2').innerHTML = diagnostico;
+            document.getElementById('diagnosticoCO2').style.background = color + '20';
+            document.getElementById('diagnosticoCO2').style.color = '#1e3b3a';
+
+            actualizarGraficosSalud();
+            actualizarConclusion();
+
+            return co2;
+        }
+
+        // Calcular Biomasa
+        function calcularBiomasa() {
+            const mgCO2 = parseFloat(document.getElementById('mgCO2Input').value) || 0;
+            const coeficiente = parseFloat(document.getElementById('coeficienteBiomasa').value) || 20.6;
+
+            const biomasa = mgCO2 * coeficiente;
+
+            document.getElementById('resultadoBiomasa').style.display = 'block';
+            document.getElementById('valorBiomasa').innerHTML = biomasa.toFixed(2);
+
+            let diagnostico = '';
+            let color = '';
+            if (biomasa > 800) {
+                diagnostico = '✅ EXCELENTE: Alta biomasa microbiana, suelo saludable.';
+                color = '#6bcf7f';
+            } else if (biomasa >= 400) {
+                diagnostico = '🟡 MEDIA: Biomasa moderada, degradación controlada.';
+                color = '#ffd93d';
+            } else {
+                diagnostico = '🔴 BAJA: Suelo impactado/tóxico, biomasa crítica.';
+                color = '#ff6b6b';
+            }
+
+            document.getElementById('diagnosticoBiomasa').innerHTML = diagnostico;
+            document.getElementById('diagnosticoBiomasa').style.background = color + '20';
+
+            actualizarGraficosSalud();
+            actualizarConclusion();
+
+            return biomasa;
+        }
+
+        // Calcular regresión lineal
+        function calcularRegresion() {
+            const concentraciones = [
+                parseFloat(document.getElementById('conc1').value) || 1.25,
+                parseFloat(document.getElementById('conc2').value) || 2.5,
+                parseFloat(document.getElementById('conc3').value) || 5,
+                parseFloat(document.getElementById('conc4').value) || 10,
+                parseFloat(document.getElementById('conc5').value) || 12.5,
+                parseFloat(document.getElementById('conc6').value) || 25
+            ];
+
+            const absorbancias = [
+                parseFloat(document.getElementById('abs1').value) || 0.041,
+                parseFloat(document.getElementById('abs2').value) || 0.025,
+                parseFloat(document.getElementById('abs3').value) || 0.106,
+                parseFloat(document.getElementById('abs4').value) || 0.35,
+                parseFloat(document.getElementById('abs5').value) || 0.395,
+                parseFloat(document.getElementById('abs6').value) || 0.886
+            ];
+
+            // Calcular regresión lineal
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            const n = concentraciones.length;
+
+            for (let i = 0; i < n; i++) {
+                sumX += concentraciones[i];
+                sumY += absorbancias[i];
+                sumXY += concentraciones[i] * absorbancias[i];
+                sumX2 += concentraciones[i] * concentraciones[i];
+            }
+
+            const pendiente = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercepto = (sumY - pendiente * sumX) / n;
+
+            regresionData = {
+                pendiente: pendiente,
+                intercepto: intercepto
+            };
+
+            document.getElementById('pendienteValor').innerHTML = pendiente.toFixed(4);
+            document.getElementById('interceptoValor').innerHTML = intercepto.toFixed(4);
+
+            // Actualizar gráfico
+            const puntosRegresion = [];
+            for (let x = 0; x <= 30; x += 1) {
+                puntosRegresion.push({ x: x, y: pendiente * x + intercepto });
+            }
+
+            chartCalibracion.data.datasets[0].data = concentraciones.map((x, i) => ({ x: x, y: absorbancias[i] }));
+            chartCalibracion.data.datasets[1].data = puntosRegresion;
+            chartCalibracion.update();
+
+            return { pendiente, intercepto };
+        }
+
+        // Calcular Lc y % Carbono
+        function calcularCarbono() {
+            if (!regresionData.pendiente) {
+                calcularRegresion();
+            }
+
+            const absorbancia = parseFloat(document.getElementById('absorbanciaMuestra').value) || 0.468;
+            const pesoMuestra = parseFloat(document.getElementById('pesoMuestra').value) || 100;
+
+            // Lc = (Absorbancia - intercepto) / pendiente
+            const lc = (absorbancia - regresionData.intercepto) / regresionData.pendiente;
+            const porcentajeC = (lc / pesoMuestra) * 100;
+
+            document.getElementById('resultadoCarbono').style.display = 'block';
+            document.getElementById('valorLc').innerHTML = lc.toFixed(2);
+            document.getElementById('valorPorcentajeC').innerHTML = porcentajeC.toFixed(2);
+            document.getElementById('porcentajeCInput').value = porcentajeC.toFixed(2);
+
+            // Diagnóstico
+            let diagnostico = '';
+            let color = '';
+            if (porcentajeC > 10) {
+                diagnostico = '💎 EXCEPCIONAL: Suelo con altísima acumulación de materia orgánica.';
+                color = '#6bcf7f';
+            } else if (porcentajeC >= 5) {
+                diagnostico = '🟢 ALTO: Excelente contenido de carbono.';
+                color = '#6bcf7f';
+            } else if (porcentajeC >= 2) {
+                diagnostico = '🟡 MEDIO: Suelo productivo, requiere mantenimiento.';
+                color = '#ffd93d';
+            } else {
+                diagnostico = '🟠 BAJO: Suelo mineralizado o erosionado.';
+                color = '#ff9f43';
+            }
+
+            document.getElementById('diagnosticoCarbono').innerHTML = diagnostico;
+            document.getElementById('diagnosticoCarbono').style.background = color + '20';
+
+            actualizarGraficosSalud();
+            actualizarConclusion();
+
+            return { lc, porcentajeC };
+        }
+
+        // Calcular % MO
+        function calcularMO() {
+            const porcentajeC = parseFloat(document.getElementById('porcentajeCInput').value) || 0;
+            const factorVB = parseFloat(document.getElementById('factorVB').value) || 1.724;
+
+            const mo = porcentajeC * factorVB;
+
+            document.getElementById('resultadoMO').style.display = 'block';
+            document.getElementById('valorMO').innerHTML = mo.toFixed(2);
+
+            let diagnostico = '';
+            let color = '';
+            if (mo > 5) {
+                diagnostico = '🟢 MUY RICO: Exceso de reservas orgánicas.';
+                color = '#6bcf7f';
+            } else if (mo >= 3) {
+                diagnostico = '🟢 ALTO: Nivel ideal para agricultura sostenible.';
+                color = '#6bcf7f';
+            } else if (mo >= 1.5) {
+                diagnostico = '🟡 MEDIO: Requiere incorporación de abono.';
+                color = '#ffd93d';
+            } else {
+                diagnostico = '🔴 POBRE: Suelo estéril, estructura colapsada.';
+                color = '#ff6b6b';
+            }
+
+            document.getElementById('diagnosticoMO').innerHTML = diagnostico;
+            document.getElementById('diagnosticoMO').style.background = color + '20';
+
+            actualizarGraficosSalud();
+            actualizarConclusion();
+
+            return mo;
+        }
+
+        // Actualizar gráficos de salud
+        function actualizarGraficosSalud() {
+            const co2 = parseFloat(document.getElementById('valorCO2')?.innerHTML) || 0;
+            const biomasa = (parseFloat(document.getElementById('valorBiomasa')?.innerHTML) || 0) / 20; // Escalar
+            const pC = parseFloat(document.getElementById('valorPorcentajeC')?.innerHTML) || 0;
+            const mo = parseFloat(document.getElementById('valorMO')?.innerHTML) || 0;
+
+            // Normalizar valores a escala 0-100
+            const co2Norm = Math.min(100, (co2 / 50) * 100);
+            const biomasaNorm = Math.min(100, biomasa);
+            const pCNorm = Math.min(100, (pC / 15) * 100);
+            const moNorm = Math.min(100, (mo / 10) * 100);
+            const actividadNorm = (co2Norm + biomasaNorm + pCNorm + moNorm) / 4;
+
+            chartSalud.data.datasets[0].data = [
+                co2Norm || 0,
+                biomasaNorm || 0,
+                pCNorm || 0,
+                moNorm || 0,
+                actividadNorm || 0
+            ];
+            chartSalud.update();
+
+            // Actualizar barra de salud
+            document.getElementById('healthBarFill').style.width = actividadNorm + '%';
+            document.getElementById('healthScore').innerHTML = Math.round(actividadNorm) + '%';
+        }
+
+        // Actualizar conclusión general
+        function actualizarConclusion() {
+            const co2 = parseFloat(document.getElementById('valorCO2')?.innerHTML) || 0;
+            const biomasa = parseFloat(document.getElementById('valorBiomasa')?.innerHTML) || 0;
+            const pC = parseFloat(document.getElementById('valorPorcentajeC')?.innerHTML) || 0;
+            const mo = parseFloat(document.getElementById('valorMO')?.innerHTML) || 0;
+
+            let conclusion = '';
+
+            if (pC > 5 && co2 < 10) {
+                conclusion = '🚨 ALERTA CRÍTICA: El suelo tiene mucho carbono pero los microbios no respiran. Esto confirma TOXICIDAD por hidrocarburos o inhibidores químicos. Se requiere análisis de contaminantes y biorremediación.';
+            } else if (pC < 2 && co2 < 10) {
+                conclusion = '📉 AGOTAMIENTO: Baja biomasa debido a que el suelo no tiene alimento (%C pobre). Recomendación: Incorporar materia orgánica (compost, abonos verdes) y rotación de cultivos.';
+            } else if (mo > 5 && biomasa > 800) {
+                conclusion = '✅ EQUILIBRIO ÓPTIMO: La actividad biológica es coherente con las reservas de carbono. Suelo saludable con alta capacidad productiva. Mantener prácticas sostenibles.';
+            } else if (mo < 1.5 && co2 < 20) {
+                conclusion = '⚠️ DEGRADACIÓN SEVERA: Suelo mineralizado con baja actividad biológica. Implementar urgentemente prácticas de regeneración y agregar enmiendas orgánicas.';
+            } else {
+                conclusion = '🌱 CONDICIÓN MODERADA: El suelo muestra signos de recuperación o manejo sostenible. Continuar con monitoreo y ajustar prácticas agrícolas según necesidad.';
+            }
+
+            document.getElementById('conclusionTexto').innerHTML = conclusion;
+        }
+    </script>
+</body>
+
+</html>
